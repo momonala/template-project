@@ -36,7 +36,7 @@ flowchart LR
 
 ## Configuration
 
-This project uses a dual configuration system:
+This project uses a dual configuration system for security. See `docs/CONFIGURATION.md` for details on exposing new keys and wiring secrets.
 
 ### Non-Secret Configuration (Version Controlled)
 Edit `pyproject.toml` under the `[tool.config]` section:
@@ -48,11 +48,9 @@ database_path = "data/app.db"
 ```
 
 ### Secret Configuration (Git-Ignored)
-Create `src/values.py` for sensitive data:
+Copy `src/values.py.example` to `src/values.py` and populate it with sensitive values:
 ```python
-# src/values.py (git-ignored)
-TELEGRAM_API_TOKEN = "your_token_here"
-GOOGLE_MAPS_API_KEY = "your_key_here"
+from src.values import TELEGRAM_API_TOKEN, FLASK_SECRET_KEY
 ```
 
 ### View Configuration
@@ -83,8 +81,8 @@ uv sync
 
 3. Set up secrets:
 ```bash
-# Copy template and fill in your secrets
-cp template-project/src/values.py src/values.py
+# Copy the stub values for CI/testing and customize locally
+cp template-project/src/values.py.example src/values.py
 # Edit src/values.py with your actual API keys/tokens
 ```
 

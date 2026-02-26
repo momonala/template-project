@@ -30,8 +30,6 @@ for d in */; do
     cp template-project/.gitignore "$d/.gitignore"
   fi
   
-  # Note: Config files (src/config.py, src/values.py) should be customized per project
-  # They are created during the project-specific refactor process
   
   echo "✅ $project_name"
 done

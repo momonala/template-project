@@ -18,34 +18,6 @@ dependencies = [
 ]
 
 [tool.config]
-# ============================================================================
-# NON-SECRET CONFIGURATION
-# ============================================================================
-# This section contains configuration values that are safe to version control.
-# Secrets (API keys, tokens, passwords) should go in src/values.py (git-ignored).
-#
-# Uncomment and customize the sections you need for your project:
-
-# Server settings (for Flask/web apps)
-# flask_port = 5000
-# server_url = "192.168.x.x"
-
-# Database settings (paths only, not credentials)
-# database_path = "data/app.db"
-
-# MQTT settings (non-secret only)
-# mqtt_port = 1883
-# mqtt_topic = "your/topic/#"
-# mqtt_broker_url = "192.168.x.x"
-
-# Cloudflare tunnel settings
-# tunnel_name = "your-tunnel-name"
-# domain_suffix = "your-domain.com"
-
-# Application-specific settings
-# update_interval_min = 30
-# default_location = "Berlin, DE"
-# timeout_seconds = 60
 
 [build-system]
 requires = ["hatchling"]

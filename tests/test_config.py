@@ -25,10 +25,6 @@ runner = CliRunner()
     [
         ("--project-name", "project"),
         ("--project-version", "0.1.0"),
-        # Add your config flags here as you uncomment them in src/config.py:
-        # ("--flask-port", "5000"),
-        # ("--server-url", "192.168.x.x"),
-        # ("--database-path", "data/app.db"),
     ],
 )
 def test_config_returns_single_value(flag: str, expected_output: str):
@@ -46,9 +42,6 @@ def test_config_all_returns_all_values():
     assert result.exit_code == 0
     assert "project_name=project" in result.stdout
     assert "project_version=0.1.0" in result.stdout
-    # Add assertions for all your config values:
-    # assert "flask_port=" in result.stdout
-    # assert "server_url=" in result.stdout
 
 
 def test_config_without_flag_fails():
