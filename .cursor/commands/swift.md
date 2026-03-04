@@ -4,6 +4,8 @@ globs: ["*.swift", "*.m", "*.h"]
 alwaysApply: false
 ---
 
+When this command is invoked, treat the following standards as mandatory for all code generation, edits, and reviews in this conversation. Apply them to the current task and any files the user references.
+
 # Swift/iOS - Clean Code & Maintainability
 
 ## Swift Language

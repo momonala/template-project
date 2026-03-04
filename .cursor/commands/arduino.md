@@ -4,75 +4,65 @@ globs: ["*.ino", "*.cpp", "*.c"]
 alwaysApply: false
 ---
 
-# Arduino / ESP – Readability, Maintainability & Simplicity
+When this command is invoked, treat the following standards as mandatory for all code generation, edits, and reviews in this conversation. Apply them to the current task and any files the user references.
 
-Guidelines for clear, maintainable Arduino and ESP (AVR/ESP32/ESP8266) code. Focus on readability, clean structure, and simple approaches rather than deep C/C++ language details.
+## Mindsets (Embedded / Clean Code)
+
+- **Thin `setup()` and `loop()`** — Delegate to named functions; intent obvious at a glance.
+- **Non-blocking over blocking** — `delay()` freezes everything; use `millis()` for timing.
+- **Names reveal intent** — `ledPin`, `lastReadTime`, `BLINK_INTERVAL_MS` not `p`, `t`, `500`.
+- **Single Responsibility** — One function, one job. Extract when logic grows.
+- **Explicit state** — Few clear variables (`lastActionTime`, `intervalMs`); no hidden globals.
+- **Simplest approach** — Avoid extra abstractions until needed. RAM and flash are limited.
+- **Code is read more than written** — Write for the next person (or future you).
 
 ## Structure & Organization
 
-- Keep `setup()` and `loop()` thin: delegate to named functions so intent is obvious at a glance.
-- Group related logic into small, focused functions; one clear responsibility per function.
-- Put constants, pin numbers, and config at the top of the file (or in a dedicated section) so behavior is easy to tune.
-- Prefer a few well-named files over one huge sketch; split by concern (e.g. sensors, display, networking) when it helps readability.
+- Constants and pin numbers at top (or `namespace Config`).
+- Group related logic into small, focused functions.
+- Split by concern: sensors, display, networking in separate files when it helps.
+- Use `const` and `constexpr`; prefer over `#define` for type safety.
 
-## Naming & Clarity
+## Cleanup Types (Arduino Refactoring)
 
-- Use descriptive names: `ledPin`, `sensorValue`, `lastReadTime` instead of `p`, `v`, `t`.
-- Name constants in UPPER_SNAKE_CASE; use them instead of magic numbers in the middle of code.
-- Name functions by what they do: `readTemperature()`, `updateDisplay()`, `sendIfReady()`.
-- Keep names consistent across the project (e.g. same style for pins, state, and timers).
+| Smell | Refactoring |
+|-------|-------------|
+| `delay()` in `loop()` | **Replace with millis()** — store `lastTime`, compare `millis() - lastTime >= interval` |
+| Magic numbers (500, 13, 1023) | **Replace with named constants** — `BLINK_MS`, `LED_PIN`, `ADC_MAX` |
+| Fat `loop()` with nested logic | **Extract Function**; keep loop as dispatcher |
+| Repeated pin/read/write pattern | **Extract to helper** or small function |
+| Scattered globals | **Group into struct** or `namespace`; pass to functions |
+| Long ISR doing real work | **Minimal ISR** — set flag; handle in `loop()` |
+| `#define` for typed values | **Replace with `const`** — `const uint8_t PIN = 13` |
+| Duplicated timing logic | **Extract `bool isIntervalElapsed(last, interval)`** |
+| Platform-specific code mixed in | **Isolate with `#ifdef ESP32`** or platform-specific functions |
 
-## Simplicity of Approach
+## Code Smells (Arduino-Specific)
 
-- Prefer the simplest approach that works: avoid extra abstractions and layers until you need them.
-- Prefer non-blocking patterns over `delay()` in `loop()` so the sketch stays responsive and easier to reason about.
-- Use `millis()` (or `micros()` when needed) for timing; keep state in a few clear variables (e.g. `lastActionTime`, `intervalMs`).
-- Avoid deep nesting or long functions; use early returns and small helpers to keep control flow flat and readable.
+- **Blocking `delay()` in loop** → Use `millis()`; sketch can't respond during delay
+- **Magic numbers** → `digitalWrite(13, HIGH)` → `digitalWrite(LED_PIN, HIGH)`
+- **Raw pin numbers** → Use `uint8_t` and named constants
+- **Heavy work in ISR** → Set flag only; do work in `loop()`
+- **`String` on AVR** → Prefer fixed buffers or `F()` for literals; avoid heap fragmentation
+- **`loop()` > 30 lines** → Extract; loop should read like a table of contents
+- **Copy-paste duplication** → Extract function; one place to fix
+- **Inconsistent naming** → Pick style (camelCase vs snake_case) and stick to it
+- **Commented-out code** → Delete; use Git for history
+- **Debug `Serial.println` scattered** → One helper/macro; `#ifdef DEBUG` to disable
 
-## State & Data Flow
+## Good vs Bad Examples
 
-- Keep state explicit: use a small set of variables or a simple struct for “current state” rather than hidden globals scattered everywhere.
-- Initialize state clearly in `setup()`; make it obvious what is updated in `loop()` and what is read-only.
-- Prefer passing values (or simple structs) into functions over relying on many global variables; it makes dependencies and data flow obvious.
+### Bad: Blocking, magic numbers
+```cpp
+void loop() {
+  digitalWrite(13, HIGH);
+  delay(500);
+  digitalWrite(13, LOW);
+  delay(500);
+}
+```
 
-## Hardware & I/O
-
-- Define pin numbers and roles once (constants or a small config block); avoid raw numbers in the middle of logic.
-- Group pin setup in `setup()` and keep the order consistent (e.g. inputs, outputs, then peripherals).
-- When using interrupts, keep the handler minimal: set a flag or update a single variable; do the real work in `loop()` so the code stays easy to read and debug.
-- Document non-obvious hardware assumptions (e.g. pull-ups, active-low) in one place so future changes are safe.
-
-## Libraries & Dependencies
-
-- Use only the libraries you need; avoid “kitchen sink” includes to keep builds and behavior predictable.
-- Prefer well-known, maintained libraries; add a short comment when the choice is non-obvious.
-- Wrap third-party or tricky API calls in small, named functions so the rest of the sketch stays readable and easy to change.
-
-## Platform Awareness (AVR vs ESP)
-
-- Keep platform-specific code isolated (e.g. `#ifdef ESP32` blocks or small platform-specific functions) so the main logic stays clear.
-- Be aware of limited RAM on AVR: avoid large buffers and heavy dynamic allocation in the main flow; keep structures and strings modest.
-- On ESP, you can use more RAM and async/WiFi patterns, but still keep the overall structure simple and the same style (thin `loop()`, named functions, clear state).
-
-## Debugging & Maintainability
-
-- Use `Serial` (or equivalent) in a consistent way: e.g. one debug helper or macro so it’s easy to disable or reduce verbosity later.
-- Add brief comments only where the “why” or “what” isn’t obvious from the code; avoid restating the code line-by-line.
-- When something is fragile (timing, hardware quirk), document the constraint in one place so future edits don’t break it.
-
-## Gotchas & Timesavers
-
-- **Blocking in `loop()`**: Long `delay()` or blocking I/O makes behavior hard to follow and extend; prefer non-blocking state machines or timers.
-- **Magic numbers**: Replace with named constants so tuning and debugging don’t require hunting through the code.
-- **Pin and type confusion**: Use explicit types (e.g. `uint8_t` for pins) and named constants so pin roles are clear.
-- **String usage on AVR**: Prefer fixed-size buffers or `F()` for literals where it keeps memory predictable and avoids fragmentation.
-- **Interrupt handlers**: Do the minimum in the ISR; do the rest in `loop()` so logic stays in one place and is easier to maintain.
-- **Copy-paste duplication**: Extract repeated patterns into a small function or a clear loop so fixes and changes happen in one place.
-
-## Examples
-
-### Good: Thin loop, named functions, clear state
-
+### Good: Non-blocking, named constants
 ```cpp
 const uint8_t LED_PIN = LED_BUILTIN;
 const unsigned long BLINK_INTERVAL_MS = 500;
@@ -80,59 +70,117 @@ const unsigned long BLINK_INTERVAL_MS = 500;
 unsigned long lastToggleTime = 0;
 bool ledOn = false;
 
-void setup() {
-  pinMode(LED_PIN, OUTPUT);
-}
-
 void loop() {
   if (millis() - lastToggleTime >= BLINK_INTERVAL_MS) {
     lastToggleTime = millis();
     ledOn = !ledOn;
     digitalWrite(LED_PIN, ledOn ? HIGH : LOW);
   }
-  // Other tasks can run here without blocking
 }
 ```
 
-### Good: Constants and one place for config
-
+### Bad: Fat loop, nested logic
 ```cpp
-namespace Config {
-  const uint8_t SENSOR_PIN = A0;
-  const unsigned long READ_INTERVAL_MS = 1000;
-  const int MIN_VAL = 0;
-  const int MAX_VAL = 1023;
-}
-
 void loop() {
-  // Use Config::* so tuning is obvious and centralized
+  if (digitalRead(2) == HIGH) {
+    int val = analogRead(A0);
+    if (val > 512) {
+      digitalWrite(13, HIGH);
+      delay(100);
+      digitalWrite(13, LOW);
+    }
+  }
+  // ... more nested logic
 }
 ```
 
-### Good: Interrupt does minimal work; logic in loop
+### Good: Thin loop, named functions
+```cpp
+void loop() {
+  if (buttonPressed()) {
+    handleButtonAction();
+  }
+  updateLedFromSensor();
+}
+```
 
+### Bad: Heavy ISR
+```cpp
+void IRAM_ATTR onButton() {
+  digitalWrite(LED_PIN, HIGH);
+  delay(100);  // BAD: blocking in ISR!
+  sendNetworkRequest();
+}
+```
+
+### Good: Minimal ISR, logic in loop
 ```cpp
 volatile bool buttonPressed = false;
 
 void IRAM_ATTR onButton() {
-  buttonPressed = true;  // Only set flag; handle in loop()
+  buttonPressed = true;
 }
 
 void loop() {
   if (buttonPressed) {
     buttonPressed = false;
-    handleButtonAction();  // Clear, testable logic
+    handleButtonAction();
   }
 }
 ```
 
-### Avoid: Blocking and magic numbers
-
+### Bad: Magic numbers, no config
 ```cpp
-void loop() {
-  digitalWrite(13, HIGH);
-  delay(500);   // Blocks; hard to add other tasks
-  digitalWrite(13, LOW);
-  delay(500);   // Magic number; intent unclear
-}
+int raw = analogRead(A0);
+float temp = raw * 0.0049 * 100;
+if (temp > 30) { ... }
 ```
+
+### Good: Named constants, config block
+```cpp
+namespace Config {
+  const uint8_t SENSOR_PIN = A0;
+  const float ADC_MV_PER_STEP = 4.9f;
+  const float TEMP_THRESHOLD_C = 30.0f;
+}
+
+float temp = analogRead(Config::SENSOR_PIN) * Config::ADC_MV_PER_STEP / 100.0f;
+if (temp > Config::TEMP_THRESHOLD_C) { ... }
+```
+
+### Bad: Scattered globals
+```cpp
+int x, y, z;
+unsigned long t1, t2, t3;
+bool a, b, c;
+```
+
+### Good: Grouped state
+```cpp
+struct AppState {
+  unsigned long lastBlinkTime = 0;
+  unsigned long lastReadTime = 0;
+  bool ledOn = false;
+  int sensorValue = 0;
+};
+```
+
+## Hardware & I/O
+
+- Define pins once; use `uint8_t` for pin numbers.
+- Group `pinMode()` in `setup()`; consistent order (inputs, outputs, peripherals).
+- Document non-obvious hardware (pull-ups, active-low) in one place.
+- ISR: set flag or single variable only; real work in `loop()`.
+
+## Platform Awareness (AVR vs ESP)
+
+- **AVR**: Limited RAM — avoid large buffers, `String`, heavy dynamic allocation.
+- **ESP**: More RAM; async/WiFi ok; keep same structure (thin loop, named functions).
+- Isolate platform code: `#ifdef ESP32` or separate platform files.
+
+## Libraries & Debugging
+
+- Include only what you need.
+- Wrap tricky APIs in small named functions.
+- One debug helper/macro; `#ifdef DEBUG` to compile out.
+- Document fragile timing or hardware quirks in one place.

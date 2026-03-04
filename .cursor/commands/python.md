@@ -4,115 +4,202 @@ globs: ["*.py"]
 alwaysApply: true
 ---
 
+When this command is invoked, treat the following standards as mandatory for all code generation, edits, and reviews in this conversation. Apply them to the current task and any files the user references.
 
-# Python Basics - Coding Standards
+## Mindsets (Zen of Python / Clean Code)
+
+- **Explicit is better than implicit** — No magic; make intent obvious.
+- **Simple is better than complex** — Flat over nested; direct over clever.
+- **Readability counts** — Code is read far more than written.
+- **Errors should never pass silently** — Fail loudly; catch specific exceptions.
+- **There should be one obvious way** — Prefer standard library and common idioms.
+- **Single Responsibility** — One reason to change per function/class.
+- **Names reveal intent** — `user_count` not `n`; `MAX_RETRIES` not `3`.
 
 ## Type Hints
 
-- Prefer built-in type hints: `list[str]` over `List[str]`, `dict[str, int]` over `Dict[str, int]`.
-- Use union syntax `str | None` instead of `Optional[str]`.
-- Avoid the `typing` module unless needed for `Protocol`, `TypeVar`, or `Generic`.
+- Prefer built-in: `list[str]`, `dict[str, int]`, `str | None` over `Optional[str]`.
+- Avoid `typing` unless needed for `Protocol`, `TypeVar`, `Generic`.
+- Use `@dataclass` or `TypedDict` for structured data.
 
 ## Docstrings
 
-- One-line docstrings for simple functions: `"""Return the user's name."""`
-- Google-style docstrings for non-trivial functions:
-  ```python
-  """Parse uptime from systemctl status output.
-
-  Args:
-      status_text: Raw status output from systemctl.
-      
-  Returns:
-      Parsed uptime string or None if not found.
-  """
-  ```
+- One-line for simple: `"""Return the user's name."""`
+- Google-style for non-trivial: Args, Returns, Raises.
+- Document *why* and constraints, not *what* the code does.
 
 ## Error Handling
 
-- Fail loudly. Avoid broad `except` clauses; catch specific exceptions.
-- Don't swallow exceptions silently. Let real errors surface.
-- Prefer `raise` over returning error codes or None for exceptional cases.
+- Fail loudly. Catch specific exceptions; avoid bare `except:`.
+- Prefer `raise` over returning `None` or error codes for exceptional cases.
+- Use context managers for cleanup (`with`).
 
 ## Side Effects & State
 
-- Don't mutate inputs or external state unless explicitly documented.
-- Avoid implicit reliance on global state or environment variables.
-- Use context managers for resource management.
+- Don't mutate inputs unless documented.
+- Avoid global state; use dependency injection.
+- Context managers for resources (files, connections, locks).
 
 ## Data Structures
 
-- Prefer `dataclasses` for structured data with minimal behavior.
-- Use `@dataclass(frozen=True)` for immutable data.
+- `dataclasses` for structured data with minimal behavior.
+- `@dataclass(frozen=True)` for immutable.
+- Prefer composition over inheritance.
 
-## Logging
+## Cleanup Types (Python Refactoring)
 
-- Log at system boundaries and failure points, not inside tight loops.
-- Never log secrets, passwords, or sensitive user data.
-- Emojis are acceptable for quick visual traceability in logs.
+| Smell | Refactoring |
+|-------|-------------|
+| Long function, nested logic | **Extract Function**; use guard clauses |
+| Magic numbers/strings | Named constants at module/class level |
+| `if isinstance(x, A): ... elif isinstance(x, B): ...` | **Replace with polymorphism** or `match`/`case` |
+| Mutable default args `def f(x=[])` | Use `None` and assign in body |
+| Try/except too broad | Catch specific exceptions; let others propagate |
+| Manual resource cleanup | **Extract to context manager** |
+| Repeated dict/list building | **Extract to helper** or comprehension |
+| Flag arguments `def f(verbose=False)` | Split into separate functions |
+| Long parameter list | **Introduce Parameter Object** (dataclass) |
 
-## Configuration
+## Code Smells (Python-Specific)
 
-- Avoid magic numbers and strings.
-- Prefer explicit configuration over hard-coded values.
-- High-level module globals are acceptable when scoped to a single file.
+- **Mutable default argument** → `def f(items=None): items = items or []`
+- **Bare except** → `except SpecificError:` or `except Exception:` with re-raise
+- **`is` for value comparison** → Use `==` for values; `is` only for `None`, singletons
+- **`type(x) == SomeClass`** → Prefer `isinstance(x, SomeClass)`
+- **`len(sequence) > 0`** → Use `if sequence:` (truthy check)
+- **`for i in range(len(lst))`** → `for i, item in enumerate(lst):`
+- **`dict.get` with default then check** → `if key in d:` or handle `KeyError`
+- **String concatenation in loop** → `"".join(parts)` or list comprehension
+- **`from module import *`** → Explicit imports
 
-## Databases
+## Good vs Bad Examples
 
-- Always use proper database transactions.
-- Ensure resources (connections, sessions, cursors) are correctly scoped and closed - use context managers.
-
-## Code Quality
-
-- Avoid code duplication; refactor shared logic.
-- Apply the Single Responsibility Principle consistently.
-- Keep functions and modules focused and small.
-
-## Testing
-
-- Write tests for new functionality in the tests/ directory.
-- Test behavior, not implementation details.
-- Minimize mocking: only mock I/O boundaries (subprocess, network, filesystem). Test pure functions directly.
-- Focus on unique edge cases. Avoid redundant test variations and assertions which exercise the same logic.
-- As a rule of thumb, tests are as small as possible (atomic, test one thing) and we write the fewest amount of tests as possible to cover as much as possible
-- This rule can be broken for larger integration tests, but always consider if we can apply the rule before breaking it.
-- Add or update tests alongside code changes.
-- Use pytest and parametrization. Avoid test classes.
-
-## Documentation
-
-- When making structural or architectural changes, check whether the README or related docs need updating.
-
-## Modern Python 3.12+ Features
-
-- Pattern matching (`match`/`case`) when appropriate.
-- Type parameter syntax: `def func[T](value: T) -> T:`.
-- Prefer `pathlib.Path` over `os.path`.
-
-## Examples
-
-### Good: Modern type hints and dataclass
-
+### Bad: Mutable default, magic number
 ```python
-@dataclass
-class ServiceStatus:
-    """Service status information."""
-    name: str
-    is_active: bool
-    uptime: str | None = None
-
-def get_service_status(service: str) -> ServiceStatus:
-    """Get status information for a service."""
-    return ServiceStatus(name=service, is_active=True)
+def fetch_users(limit=100):
+    users = []
+    for i in range(limit):
+        ...
 ```
 
-### Good: Specific exception handling
+### Good: Explicit default, named constant
+```python
+DEFAULT_PAGE_SIZE = 100
 
+def fetch_users(limit: int = DEFAULT_PAGE_SIZE) -> list[User]:
+    return [_fetch_one(i) for i in range(limit)]
+```
+
+### Bad: Bare except, swallowing errors
 ```python
 try:
-    result = subprocess.run(cmd, check=True, text=True, capture_output=True)
-except subprocess.CalledProcessError as exc:
-    logger.error("Command failed: %s", exc.stderr)
+    result = risky_operation()
+except:
+    pass
+```
+
+### Good: Specific exception, re-raise
+```python
+try:
+    result = risky_operation()
+except ConnectionError as exc:
+    logger.error("Connection failed: %s", exc)
     raise
 ```
 
+### Bad: Nested conditionals
+```python
+def get_discount(user):
+    if user:
+        if user.is_premium:
+            return 0.2
+        elif user.orders > 10:
+            return 0.1
+    return 0
+```
+
+### Good: Guard clauses
+```python
+def get_discount(user: User | None) -> float:
+    if not user:
+        return 0.0
+    if user.is_premium:
+        return 0.2
+    if user.orders > 10:
+        return 0.1
+    return 0.0
+```
+
+### Bad: Anti-patterns
+```python
+if type(x) == str: ...
+if len(items) > 0: ...
+for i in range(len(items)):
+    do(items[i])
+```
+
+### Good: Pythonic
+```python
+if isinstance(x, str): ...
+if items: ...
+for item in items:
+    do(item)
+```
+
+### Bad: Manual resource cleanup
+```python
+f = open(path)
+data = f.read()
+f.close()
+```
+
+### Good: Context manager
+```python
+with open(path) as f:
+    data = f.read()
+```
+
+### Bad: SRP violation
+```python
+def process_order(order):
+    validate(order)
+    total = sum(item.price for item in order.items)
+    save_to_db(order)
+    send_email(order.customer, total)
+```
+
+### Good: Delegate
+```python
+def process_order(order: Order) -> None:
+    order_validator.validate(order)
+    order_processor.execute(order)
+```
+
+## Configuration & Databases
+
+- Avoid magic numbers/strings; prefer explicit config.
+- Module-level constants ok when scoped to one file.
+- Use transactions for DB work; context managers for connections/sessions/cursors.
+
+## Logging
+
+- Log at boundaries and failure points, not in tight loops.
+- Never log secrets or PII. Emojis ok for quick visual traceability.
+- Use `logger.error("msg: %s", var)` not f-strings for lazy interpolation.
+
+## Testing
+
+- Use pytest; parametrize; avoid test classes.
+- Test behavior, not implementation. Mock only I/O boundaries.
+- Atomic tests; minimal set to cover edge cases.
+- Add/update tests alongside code changes.
+
+## Modern Python 3.12+
+
+- Pattern matching (`match`/`case`) for type-based dispatch.
+- Type parameter syntax: `def func[T](x: T) -> T:`.
+- Prefer `pathlib.Path` over `os.path`.
+
+## Documentation
+
+- When making structural changes, update README or related docs.
