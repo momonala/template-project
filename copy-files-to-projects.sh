@@ -8,11 +8,6 @@ for d in */; do
   
   project_name="${d%/}"
   
-  # Copy .cursor directory recursively
-  if [ -d "template-project/.cursor" ]; then
-    cp -r template-project/.cursor "$d/"
-  fi
-  
   # Copy pre-commit.sh to project root
   if [ -f "template-project/pre-commit.sh" ]; then
     cp template-project/pre-commit.sh "$d/pre-commit.sh"
