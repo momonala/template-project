@@ -1,33 +1,11 @@
+NOTE: This is a template. Please update and add/remove sections accordingly. This document should serve as high level over and guide for any human or LLM working on this project, and they should gain enough context to get started on work immediately after reading. Therefore, they should be able to understand architecture, dataflow, API design/contract, and any wierd quirks after reading. This document should not contain style guides, marketing speak hyping up the app, AI slop. The intended audience is senior software engineers looking to build and maintain the project. Delete this note when filling out the README template.
+
 # {{PROJECT_NAME}}
 
 [![CI](https://github.com/momonala/{{PROJECT_NAME}}/actions/workflows/ci.yml/badge.svg)](https://github.com/momonala/{{PROJECT_NAME}}/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/momonala/{{PROJECT_NAME}}/branch/main/graph/badge.svg)](https://codecov.io/gh/momonala/{{PROJECT_NAME}})
 
 {{SHORT_DESCRIPTION}}
-
-## Tech Stack
-
-- {{LANGUAGE_VERSION}} / {{FRAMEWORK}} backend
-- {{DATABASE}} for data storage
-- {{OTHER_TECH}}
-
-## Architecture
-
-```mermaid
-flowchart LR
-    subgraph External
-        {{EXTERNAL_SERVICE}}[{{EXTERNAL_NAME}}]
-    end
-    subgraph Storage
-        DB[({{DATABASE_FILE}})]
-    end
-    subgraph App
-        Server[{{FRAMEWORK}} Server :{{PORT}}]
-    end
-    
-    {{EXTERNAL_SERVICE}} -->|{{API_ACTION}}| Server
-    Server --> DB
-```
 
 ## Prerequisites
 
@@ -48,42 +26,29 @@ database_path = "data/app.db"
 ```
 
 ### Secret Configuration (Git-Ignored)
-Copy `src/values.py.example` to `src/values.py` and populate it with sensitive values:
+Copy `.env.example` to `.env` and populate it with sensitive values:
 ```python
-from src.values import TELEGRAM_API_TOKEN, FLASK_SECRET_KEY
+from src.env import TELEGRAM_API_TOKEN, FLASK_SECRET_KEY
 ```
 
 ### View Configuration
 ```bash
 # View all non-secret config
 uv run config --all
-
-# Get specific values
-uv run config --flask-port
-uv run config --server-url
-
-# See all options
-uv run config --help
 ```
 
 ## Installation
 
-1. Clone the repository:
-```bash
-git clone https://github.com/{{GITHUB_USER}}/{{REPO_NAME}}.git
-cd {{REPO_NAME}}
-```
-
-2. Install dependencies:
+Install dependencies:
 ```bash
 uv sync
 ```
 
-3. Set up secrets:
+Set up secrets:
 ```bash
 # Copy the stub values for CI/testing and customize locally
-cp template-project/src/values.py.example src/values.py
-# Edit src/values.py with your actual API keys/tokens
+cp .env.example .env
+# Edit .env with your actual API keys/tokens
 ```
 
 ## Running
@@ -105,6 +70,24 @@ Server runs at http://localhost:{{PORT}}
 │
 └── install/                  # Deployment scripts (optional)
     └── install.sh
+```
+
+## Architecture
+
+```mermaid
+flowchart LR
+    subgraph External
+        {{EXTERNAL_SERVICE}}[{{EXTERNAL_NAME}}]
+    end
+    subgraph Storage
+        DB[({{DATABASE_FILE}})]
+    end
+    subgraph App
+        Server[{{FRAMEWORK}} Server :{{PORT}}]
+    end
+    
+    {{EXTERNAL_SERVICE}} -->|{{API_ACTION}}| Server
+    Server --> DB
 ```
 
 ## API Endpoints
@@ -137,30 +120,3 @@ Response:
   "data": {}
 }
 ```
-
-## Key Concepts
-
-| Concept | Description |
-|---------|-------------|
-| **{{CONCEPT_1}}** | {{CONCEPT_1_DESCRIPTION}} |
-| **{{CONCEPT_2}}** | {{CONCEPT_2_DESCRIPTION}} |
-
-## Data Models
-
-```
-{{MODEL_NAME}}
-├── {{FIELD_1}}: {{FIELD_1_TYPE}}
-├── {{FIELD_2}}: {{FIELD_2_TYPE}}
-└── {{FIELD_3}}: {{FIELD_3_TYPE}}
-```
-
-## Storage
-
-| File | Purpose |
-|------|---------|
-| `{{DATABASE_FILE}}` | {{DATABASE_DESCRIPTION}} |
-
-## Deployment
-
-{{DEPLOYMENT_INSTRUCTIONS}}
-
