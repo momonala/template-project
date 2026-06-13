@@ -3,7 +3,7 @@
  After=multi-user.target
 
  [Service]
- WorkingDirectory=/home/mnalavadi/usc-vis
+ WorkingDirectory=/home/mnalavadi/UPDATE-TO-PROJECT-ROOT
  Type=idle
  ExecStart=/home/mnalavadi/.local/bin/uv run scheduler
  User=mnalavadi
