@@ -22,8 +22,8 @@ fi
 
 
 echo "🔍 Checking if template files that block installation have been updated or deleted."
-if [ -f install/projects_.service ] || [ -f install/projects_data-backup-scheduler.service ]; then
-    echo "❌ install/projects_.service or install/projects_data-backup-scheduler.service needs to be renamed or deleted"
+if [ -f install/projects_.service ]; then
+    echo "❌ install/projects_.service needs to be renamed or deleted"
     exit 1
 fi
 
