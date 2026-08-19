@@ -4,7 +4,8 @@ Entry point for a human or agent bootstrapping a new project from this template.
 
 ## What this template gives you
 
-- `pyproject.toml` — uv-managed deps, black/ruff/isort/mypy/pytest config. `[tool.config]` holds non-secret, version-controlled config.
+- `pyproject.toml` — uv-managed deps, black/ruff/isort/mypy/pytest config. `[tool.config]` holds non-secret, version-controlled config. `[project.scripts]` wires up `uv run app` and `uv run config`.
+- `src/app.py` — minimal Flask entry point with a `/status` route; build out real routes here.
 - `src/env.py` — loads secrets from `.env` (git-ignored; `.env.example` is the checked-in stub with placeholder values used in CI).
 - `src/config.py` — reads `[tool.config]` from `pyproject.toml`; exposed as `uv run config --all` / `--<key>`.
 - `src/git_tool.py` — example job logic (`commit_db_if_changed`) for backing up a sqlite DB to git. Register it as a job with [Flask-APScheduler](https://github.com/viniciuschiele/flask-apscheduler) inside your app rather than running it as a separate process — see conventions below.

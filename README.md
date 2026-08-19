@@ -14,7 +14,7 @@ NOTE: This is a template. Please update and add/remove sections accordingly. Thi
 
 ## Configuration
 
-This project uses a dual configuration system for security. See `docs/CONFIGURATION.md` for details on exposing new keys and wiring secrets.
+This project uses a dual configuration system: non-secret settings are version-controlled, secrets are git-ignored.
 
 ### Non-Secret Configuration (Version Controlled)
 Edit `pyproject.toml` under the `[tool.config]` section:
@@ -54,7 +54,7 @@ cp .env.example .env
 ## Running
 
 ```bash
-uv run python app.py
+uv run app
 ```
 
 Server runs at http://localhost:{{PORT}}
@@ -63,9 +63,13 @@ Server runs at http://localhost:{{PORT}}
 
 ```
 {{REPO_NAME}}/
-├── app.py                    # {{FRAMEWORK}} application & routes
-├── datamodels.py             # Data models / dataclasses
-├── db.py                     # Database connection utilities
+├── src/
+│   ├── app.py                # {{FRAMEWORK}} application & routes
+│   ├── config.py             # Non-secret config from pyproject.toml [tool.config]
+│   ├── env.py                # Secrets loaded from .env (git-ignored)
+│   ├── datamodels.py         # Data models / dataclasses
+│   └── db.py                 # Database connection utilities
+├── .env.example              # Stub secrets used in CI
 ├── pyproject.toml            # Dependencies & tool config
 │
 └── install/                  # Deployment scripts (optional)
