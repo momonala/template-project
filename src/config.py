@@ -11,25 +11,26 @@ _project_config = _config["project"]
 
 PROJECT_NAME = _project_config["name"]
 PROJECT_VERSION = _project_config["version"]
+FLASK_PORT = _config["tool"]["config"]["flask_port"]
 
 
 def config_cli(
     all: bool = typer.Option(False, "--all", help="Show all configuration values"),
     project_name: bool = typer.Option(False, "--project-name", help=PROJECT_NAME),
     project_version: bool = typer.Option(False, "--project-version", help=PROJECT_VERSION),
+    flask_port: bool = typer.Option(False, "--flask-port", help=str(FLASK_PORT)),
 ) -> None:
-    """Expose non-secret configuration defined in pyproject.toml.
-
-    See docs/CONFIGURATION.md for details on adding new options.
-    """
+    """Expose non-secret configuration defined in pyproject.toml's [tool.config] section."""
     if all:
         typer.echo(f"project_name={PROJECT_NAME}")
         typer.echo(f"project_version={PROJECT_VERSION}")
+        typer.echo(f"flask_port={FLASK_PORT}")
         return
 
     param_map = {
         project_name: PROJECT_NAME,
         project_version: PROJECT_VERSION,
+        flask_port: FLASK_PORT,
     }
 
     for is_set, value in param_map.items():

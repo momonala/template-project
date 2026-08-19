@@ -15,10 +15,12 @@ dependencies = [
     "ruff>=0.14.10",
     "isort>=7.0.0",
     "typer>=0.9.0",
+    "flask>=3.0.0",
     "python-dotenv>=1.0.0",
 ]
 
 [tool.config]
+flask_port = 5000
 
 [build-system]
 requires = ["hatchling"]
@@ -28,6 +30,7 @@ build-backend = "hatchling.build"
 packages = ["."]
 
 [project.scripts]
+app = "src.app:main"
 config = "src.config:main"
 
 [tool.black]
