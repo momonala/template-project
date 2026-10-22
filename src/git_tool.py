@@ -21,7 +21,7 @@ file_to_commit = f"{database_path}.bk"
 
 
 def run_command(cmd):
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    result = subprocess.run(cmd, capture_output=True, text=True, check=False)
     if result.returncode != 0:
         logger.error("Command %s failed: %s", cmd, result.stderr.strip())
         raise subprocess.CalledProcessError(result.returncode, cmd, result.stdout, result.stderr)

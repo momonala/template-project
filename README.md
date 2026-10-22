@@ -3,7 +3,6 @@ NOTE: This is a template. Please update and add/remove sections accordingly. Thi
 # {{PROJECT_NAME}}
 
 [![CI](https://github.com/momonala/{{PROJECT_NAME}}/actions/workflows/ci.yml/badge.svg)](https://github.com/momonala/{{PROJECT_NAME}}/actions/workflows/ci.yml)
-[![codecov](https://codecov.io/gh/momonala/{{PROJECT_NAME}}/branch/main/graph/badge.svg)](https://codecov.io/gh/momonala/{{PROJECT_NAME}})
 
 {{SHORT_DESCRIPTION}}
 
